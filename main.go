@@ -7,12 +7,16 @@ import (
 	"os"
 	"strconv"
 
+	"wswagner.visualstudio.com/iotgate-server/v1/controller"
+	"wswagner.visualstudio.com/iotgate-server/v1/services"
+
 	"github.com/gorilla/mux"
 )
 
 // HomeHandler returns the firmware server version string
 func homeHandler(writer http.ResponseWriter, r *http.Request) {
 	fmt.Fprintf(writer, "iotgate-server 0.1")
+	log.Println("Get request to /")
 }
 
 func deviceIdRegisterHandler(writer http.ResponseWriter, r *http.Request) {
@@ -60,11 +64,29 @@ func deviceIdFirmwareBlockHandler(writer http.ResponseWriter, r *http.Request) {
 
 func main() {
 	r := mux.NewRouter()
-	r.HandleFunc("/", homeHandler)
+	/*r.HandleFunc("/", homeHandler)
 	r.HandleFunc("/devices/{id}/register", deviceIdRegisterHandler).Methods("POST")
 	r.HandleFunc("/devices/{id}/firmware", deviceIdFirmwareHandler)
-	r.HandleFunc("/devices/{id}/firmware/block", deviceIdFirmwareBlockHandler).Queries("start", "{start:[0-9]+}", "len", "{len:[0-9]+}")
+	r.HandleFunc("/devices/{id}/firmware/block", deviceIdFirmwareBlockHandler).Queries("start", "{start:[0-9]+}", "len", "{len:[0-9]+}")*/
 
-	http.ListenAndServe("127.0.0.1:8080", r)
+	homedir, err := os.UserHomeDir()
+	if err != nil {
+		log.Panicln(err.Error())
+	}
+
+	mdfs := services.ManagedDocumentFileService{Basepath: homedir + "/.iotgate-server", StoragePattern: "%s.%s"}
+	dds := services.MFDeviceDataService{FileService: mdfs}
+	fws := services.MFFirmwareService{FileService: mdfs}
+
+	dc := controller.DevicesController{Dds: dds}
+	fc := controller.FirmwareController{Dds: dds, Fws: fws}
+
+	devices := r.PathPrefix("/devices/").Subrouter()
+	firmware := r.PathPrefix("/firmware/").Subrouter()
+
+	dc.Hook(devices)
+	fc.Hook(firmware)
+
+	http.ListenAndServe(":8080", r)
 	log.Println("server stopped.")
 }
