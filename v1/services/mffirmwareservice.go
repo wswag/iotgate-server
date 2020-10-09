@@ -2,6 +2,7 @@ package services
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"io"
 	"io/ioutil"
@@ -33,19 +34,28 @@ func (m MFFirmwareService) SetFirmwareMetadata(data model.FirmwareMetadata) erro
 }
 
 // UploadFirmware persists the content in src as the new firmware for deviceID
-func (m MFFirmwareService) UploadFirmware(deviceID string, src io.Reader) ([]byte, error) {
+func (m MFFirmwareService) UploadFirmware(deviceID string, src io.Reader, meta *model.FirmwareMetadata) error {
 	f, err := m.FileService.Create(firmwareTopic, deviceID)
 	if err != nil {
-		return nil, err
+		return err
 	}
 	defer f.Close()
 
 	bytes, _ := ioutil.ReadAll(src)
 	_, err = f.Write(bytes)
 
-	hash := sha256.Sum256(bytes)
+	// TODO
+	meta.SHAHash = ""
+	e := ESP32MetadataExtractor{}
+	e.ExtractMeta(bytes, meta)
 
-	return hash[0:32], err
+	if meta.SHAHash == "" {
+		// not extracted from metadata so compute the hash
+		hash := sha256.Sum256(bytes)
+		meta.SHAHash = hex.EncodeToString(hash[:])
+	}
+
+	return err
 }
 
 // DownloadFirmware copies the related firmware to the given io.Writer dst

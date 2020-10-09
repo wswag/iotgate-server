@@ -74,7 +74,9 @@ func (fc FirmwareController) handlePostIDImage(writer http.ResponseWriter, r *ht
 	meta.Size = uint32(r.ContentLength)
 	meta.Timestamp = time.Now().Unix()
 
-	hash, err := fc.Fws.UploadFirmware(deviceID, r.Body)
+	// reset the hash
+	meta.SHAHash = ""
+	err = fc.Fws.UploadFirmware(deviceID, r.Body, &meta)
 
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
@@ -82,9 +84,8 @@ func (fc FirmwareController) handlePostIDImage(writer http.ResponseWriter, r *ht
 	}
 
 	h := hmac.New(sha256.New, []byte(deviceData.PrivateKey))
-	h.Write(hash)
+	h.Write([]byte(meta.SHAHash))
 
-	meta.SHAHash = hex.EncodeToString(hash)
 	meta.Signature = hex.EncodeToString(h.Sum(nil))
 
 	fc.Fws.SetFirmwareMetadata(meta)
