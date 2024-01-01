@@ -12,3 +12,4 @@ iotgate-server
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 firmware/
+iotgate-server
