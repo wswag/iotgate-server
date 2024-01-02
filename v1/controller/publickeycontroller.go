@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"wswagner.visualstudio.com/iotgate-server/v1/services"
+	"github.com/wswag/iotgate-server/v1/services"
 )
 
 // DevicesController handles device management related api features

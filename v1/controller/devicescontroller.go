@@ -6,10 +6,10 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"wswagner.visualstudio.com/iotgate-server/v1/model"
+	"github.com/wswag/iotgate-server/v1/model"
 
 	"github.com/gorilla/mux"
-	"wswagner.visualstudio.com/iotgate-server/v1/services"
+	"github.com/wswag/iotgate-server/v1/services"
 )
 
 // DevicesController handles device management related api features

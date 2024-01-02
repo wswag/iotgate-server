@@ -5,7 +5,7 @@ import (
 	"errors"
 	"io"
 
-	"wswagner.visualstudio.com/iotgate-server/v1/model"
+	"github.com/wswag/iotgate-server/v1/model"
 )
 
 // MFFirmwareService implements FirmwareService based on a ManagedFileService

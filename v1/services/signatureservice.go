@@ -9,7 +9,7 @@ import (
 	"errors"
 	"os"
 
-	"wswagner.visualstudio.com/iotgate-server/v1/model"
+	"github.com/wswag/iotgate-server/v1/model"
 )
 
 func getPrivateKey() (*rsa.PrivateKey, error) {

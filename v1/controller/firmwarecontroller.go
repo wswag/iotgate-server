@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
-	"wswagner.visualstudio.com/iotgate-server/v1/model"
-	"wswagner.visualstudio.com/iotgate-server/v1/services"
+	"github.com/wswag/iotgate-server/v1/model"
+	"github.com/wswag/iotgate-server/v1/services"
 )
 
 // FirmwareController provides device firmware related apis

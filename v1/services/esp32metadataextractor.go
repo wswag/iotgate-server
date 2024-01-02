@@ -6,7 +6,7 @@ import (
 	"encoding/binary"
 	"log"
 
-	"wswagner.visualstudio.com/iotgate-server/v1/model"
+	"github.com/wswag/iotgate-server/v1/model"
 )
 
 type ESP32MetadataExtractor struct {

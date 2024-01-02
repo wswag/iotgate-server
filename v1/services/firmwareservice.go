@@ -3,7 +3,7 @@ package services
 import (
 	"io"
 
-	"wswagner.visualstudio.com/iotgate-server/v1/model"
+	"github.com/wswag/iotgate-server/v1/model"
 )
 
 // FirmwareService provides methods to get metadata and download/upload firmware binary data

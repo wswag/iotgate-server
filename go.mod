@@ -1,4 +1,4 @@
-module wswagner.visualstudio.com/iotgate-server
+module github.com/wswag/iotgate-server
 
 go 1.18
 

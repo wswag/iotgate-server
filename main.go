@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	"wswagner.visualstudio.com/iotgate-server/v1/controller"
-	"wswagner.visualstudio.com/iotgate-server/v1/middleware"
-	"wswagner.visualstudio.com/iotgate-server/v1/services"
+	"github.com/wswag/iotgate-server/v1/controller"
+	"github.com/wswag/iotgate-server/v1/middleware"
+	"github.com/wswag/iotgate-server/v1/services"
 
 	"github.com/gorilla/mux"
 )

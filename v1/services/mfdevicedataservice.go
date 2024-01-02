@@ -1,7 +1,7 @@
 package services
 
 import (
-	"wswagner.visualstudio.com/iotgate-server/v1/model"
+	"github.com/wswag/iotgate-server/v1/model"
 )
 
 // MFDeviceDataService implements the DeviceDataService interface with a ManagedDocumentService
