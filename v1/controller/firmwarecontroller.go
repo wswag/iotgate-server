@@ -1,9 +1,6 @@
 package controller
 
 import (
-	"crypto/hmac"
-	"crypto/sha256"
-	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"net/http"
@@ -11,6 +8,7 @@ import (
 	"time"
 
 	"github.com/gorilla/mux"
+	"wswagner.visualstudio.com/iotgate-server/v1/model"
 	"wswagner.visualstudio.com/iotgate-server/v1/services"
 )
 
@@ -36,12 +34,20 @@ func (fc FirmwareController) handleGetHome(writer http.ResponseWriter, r *http.R
 func (fc FirmwareController) handleGetID(writer http.ResponseWriter, r *http.Request) {
 	v := mux.Vars(r)
 	deviceID := v["id"]
+
 	meta, err := fc.Fws.GetFirmwareMetadata(deviceID)
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
-	data, err := json.Marshal(meta)
+	signatureBytes, err := services.ComputeFirmwareSignature(meta)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+	meta.Signature = model.EncodeMetaBytes(signatureBytes)
+
+	data, _ := json.Marshal(meta)
 	writer.Write(data)
 }
 
@@ -58,14 +64,18 @@ func (fc FirmwareController) handlePostIDImage(writer http.ResponseWriter, r *ht
 	v := mux.Vars(r)
 	deviceID := v["id"]
 
-	deviceData, err := fc.Dds.GetDeviceData(deviceID)
+	_, err := fc.Dds.GetDeviceData(deviceID)
 	if err != nil {
 		// most likely, device is not registered
-		http.Error(writer, err.Error(), http.StatusBadRequest)
+		http.Error(writer, err.Error(), http.StatusNotFound)
 		return
 	}
-	//contentType := r.Header.Get("Content-Type")
-	//if (contentType != "application/octet-stream")
+
+	// todo: make configurable
+	if r.ContentLength > 8000000 {
+		http.Error(writer, "size exceeds allowed size of 8mb", http.StatusBadRequest)
+		return
+	}
 
 	// TODO: where to put business logic?
 	meta, _ := fc.Fws.GetFirmwareMetadata(deviceID)
@@ -83,12 +93,18 @@ func (fc FirmwareController) handlePostIDImage(writer http.ResponseWriter, r *ht
 		return
 	}
 
-	h := hmac.New(sha256.New, []byte(deviceData.PrivateKey))
-	h.Write([]byte(meta.SHAHash))
-
-	meta.Signature = hex.EncodeToString(h.Sum(nil))
+	signatureBytes, err := services.ComputeFirmwareSignature(meta)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+	meta.Signature = model.EncodeMetaBytes(signatureBytes)
 
 	fc.Fws.SetFirmwareMetadata(meta)
+
+	// write back new metadata
+	data, _ := json.Marshal(meta)
+	writer.Write(data)
 }
 
 func (fc FirmwareController) handleGetIDImageChunk(writer http.ResponseWriter, r *http.Request) {

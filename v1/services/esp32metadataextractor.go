@@ -3,7 +3,6 @@ package services
 import (
 	"bytes"
 	"encoding/binary"
-	"encoding/hex"
 	"log"
 
 	"wswagner.visualstudio.com/iotgate-server/v1/model"
@@ -59,7 +58,7 @@ func (e ESP32MetadataExtractor) ExtractMeta(firmware []byte, meta *model.Firmwar
 		// replace computed hash with appended hash
 		log.Println("Extracting new Hash")
 		appendedHash := firmware[len(firmware)-32:]
-		meta.SHAHash = hex.EncodeToString(appendedHash)
+		meta.SHAHash = model.EncodeMetaBytes(appendedHash)
 	}
 
 	log.Println("Extracted metadata:")

@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"wswagner.visualstudio.com/iotgate-server/v1/controller"
 	"wswagner.visualstudio.com/iotgate-server/v1/middleware"
@@ -13,28 +14,53 @@ import (
 )
 
 func main() {
+	log.Println("iotgate-server 1.0.0")
+
 	r := mux.NewRouter()
 
-	homedir, err := os.UserHomeDir()
-	if err != nil {
-		log.Panicln(err.Error())
+	appPort := strings.TrimSpace(os.Getenv("PORT"))
+	if appPort == "" {
+		appPort = "80"
 	}
+	log.Println("configured port (PORT env): " + appPort)
 
-	mdfs := services.ManagedDocumentFileService{Basepath: homedir + "/.iotgate-server", StoragePattern: "%s.%s"}
+	storageLocation := strings.TrimSpace(os.Getenv("STORAGE_PATH"))
+	if storageLocation == "" {
+		storageLocation = "./data"
+	}
+	log.Println("configured stroage location (STORAGE_PATH env): " + storageLocation)
+
+	pk_err := services.TestPrivateKey()
+	if pk_err != nil {
+		log.Fatalln("erronous X509/PKCS1 RSA private key configuration (SIGNATURE_PRIVATE_KEYFILE env): " + pk_err.Error())
+	}
+	log.Println("signature private key OK")
+
+	pk_err = services.TestPublicKey()
+	if pk_err != nil {
+		log.Fatalln("erronous X509/PKCS1 RSA public key configuration (SIGNATURE_PUBLIC_KEYFILE env): " + pk_err.Error() + ". GET /publicKey will return this error.")
+	}
+	log.Println("signature public key OK")
+
+	mdfs := services.ManagedDocumentFileService{Basepath: storageLocation, StoragePattern: "%s.%s"}
 	dds := services.MFDeviceDataService{FileService: mdfs}
 	fws := services.MFFirmwareService{FileService: mdfs}
 
 	dc := controller.DevicesController{Dds: dds}
 	fc := controller.FirmwareController{Dds: dds, Fws: fws}
+	pc := controller.PublicKeyController{}
 
 	devices := r.PathPrefix("/devices/").Subrouter()
 	firmware := r.PathPrefix("/firmware/").Subrouter()
+	publickey := r.PathPrefix("/publickey").Subrouter()
 
 	dc.Hook(devices)
 	fc.Hook(firmware)
+	pc.Hook(publickey)
 
 	r.Use(middleware.LoggingMiddleware)
 
-	http.ListenAndServe(":8080", r)
-	log.Println("server stopped.")
+	log.Println("starting server at port :" + appPort)
+	err := http.ListenAndServe(":"+appPort, r)
+	log.Println("server stopped. " + err.Error())
 }

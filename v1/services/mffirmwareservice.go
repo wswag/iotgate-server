@@ -2,10 +2,8 @@ package services
 
 import (
 	"crypto/sha256"
-	"encoding/hex"
 	"errors"
 	"io"
-	"io/ioutil"
 
 	"wswagner.visualstudio.com/iotgate-server/v1/model"
 )
@@ -41,10 +39,14 @@ func (m MFFirmwareService) UploadFirmware(deviceID string, src io.Reader, meta *
 	}
 	defer f.Close()
 
-	bytes, _ := ioutil.ReadAll(src)
-	_, err = f.Write(bytes)
+	_, err = io.Copy(f, src)
+	if err != nil {
+		return err
+	}
 
-	// TODO
+	// TODO: dont load whole conent, instead use a stream
+	fwFile, _ := m.FileService.Open(firmwareTopic, deviceID)
+	bytes, _ := io.ReadAll(fwFile)
 	meta.SHAHash = ""
 	e := ESP32MetadataExtractor{}
 	e.ExtractMeta(bytes, meta)
@@ -52,7 +54,7 @@ func (m MFFirmwareService) UploadFirmware(deviceID string, src io.Reader, meta *
 	if meta.SHAHash == "" {
 		// not extracted from metadata so compute the hash
 		hash := sha256.Sum256(bytes)
-		meta.SHAHash = hex.EncodeToString(hash[:])
+		meta.SHAHash = model.EncodeMetaBytes(hash[:])
 	}
 
 	return err

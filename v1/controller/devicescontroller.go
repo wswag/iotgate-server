@@ -37,7 +37,6 @@ func (dc DevicesController) handleGetID(writer http.ResponseWriter, r *http.Requ
 		return
 	}
 
-	deviceData.PrivateKey = "secret" // obfuscate the private key
 	data, _ := json.Marshal(deviceData)
 	writer.Write(data)
 }
@@ -49,11 +48,20 @@ func (dc DevicesController) handlePostIDRegister(writer http.ResponseWriter, r *
 
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		writer.WriteHeader(http.StatusBadRequest)
+		http.Error(writer, err.Error(), http.StatusBadRequest)
 		return
 	}
+
 	deviceData := model.DeviceData{}
-	json.Unmarshal(body, &deviceData)
+	err = json.Unmarshal(body, &deviceData)
+	if err != nil {
+		http.Error(writer, err.Error(), http.StatusBadRequest)
+		return
+	}
+
 	deviceData.DeviceID = v["id"] // override id
 	dc.Dds.SetDeviceData(deviceData)
+
+	data, _ := json.Marshal(deviceData)
+	writer.Write(data)
 }

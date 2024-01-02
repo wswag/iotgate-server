@@ -4,5 +4,4 @@ package model
 type DeviceData struct {
 	DeviceID        string
 	FirmwareVersion string
-	PrivateKey      string
 }
