@@ -32,13 +32,13 @@ func main() {
 
 	pk_err := services.TestPrivateKey()
 	if pk_err != nil {
-		log.Fatalln("erronous X509/PKCS1 RSA private key configuration (SIGNATURE_PRIVATE_KEYFILE env): " + pk_err.Error())
+		log.Fatalln("erronous X509 RSA private key configuration (SIGNATURE_PRIVATE_KEYFILE env): " + pk_err.Error())
 	}
 	log.Println("signature private key OK")
 
 	pk_err = services.TestPublicKey()
 	if pk_err != nil {
-		log.Fatalln("erronous X509/PKCS1 RSA public key configuration (SIGNATURE_PUBLIC_KEYFILE env): " + pk_err.Error() + ". GET /publicKey will return this error.")
+		log.Fatalln("erronous X509 RSA public key configuration (SIGNATURE_PUBLIC_KEYFILE env): " + pk_err.Error())
 	}
 	log.Println("signature public key OK")
 

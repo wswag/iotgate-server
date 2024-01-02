@@ -2,6 +2,7 @@ package services
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/binary"
 	"log"
 
@@ -57,8 +58,15 @@ func (e ESP32MetadataExtractor) ExtractMeta(firmware []byte, meta *model.Firmwar
 	if imgHeader.Hash_appended != 0 {
 		// replace computed hash with appended hash
 		log.Println("Extracting new Hash")
-		appendedHash := firmware[len(firmware)-32:]
-		meta.SHAHash = model.EncodeMetaBytes(appendedHash)
+		appendedHash := (firmware[len(firmware)-32:])
+		computedHash := sha256.Sum256(firmware[:len(firmware)-32])
+		if !bytes.Equal(appendedHash, computedHash[:]) {
+			log.Println("warning: appended hash differs from computed hash!")
+		}
+		meta.SHAHash = model.EncodeMetaBytes(computedHash[:])
+	} else {
+		computedHash := sha256.Sum256(firmware)
+		meta.SHAHash = model.EncodeMetaBytes(computedHash[:])
 	}
 
 	log.Println("Extracted metadata:")

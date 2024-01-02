@@ -46,6 +46,9 @@ func (m *ObjectDocumentService) CreateObject(topic string, key string, obj inter
 	defer f.Close()
 
 	bytes, err := json.Marshal(obj)
+	if err != nil {
+		return err
+	}
 
 	_, err = f.Write(bytes)
 	return err
