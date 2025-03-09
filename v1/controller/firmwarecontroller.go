@@ -117,6 +117,6 @@ func (fc FirmwareController) handleGetIDImageChunk(writer http.ResponseWriter, r
 	if err != nil {
 		http.Error(writer, err.Error(), http.StatusBadRequest)
 	}
-
+	//writer.Header().Add("Content-Length", fmt.Sprint(len))
 	writer.Write(data)
 }

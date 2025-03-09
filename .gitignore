@@ -16,3 +16,4 @@ data/
 test/
 private.key
 public.key
+*.bin

@@ -7,7 +7,7 @@ curl -X POST -d '{"FirmwareVersion":"1"}' localhost/devices/dummy/register
 curl "localhost/devices/dummy"
 
 # upload firmware
-curl -X POST -d @main.go "localhost/firmware/dummy/image"
+curl -X POST --data-binary @firmware.bin "localhost/firmware/dummy/image"
 
 # query firmware meta
 curl "localhost/firmware/dummy"
